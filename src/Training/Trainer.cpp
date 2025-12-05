@@ -22,8 +22,7 @@ void Trainer::train(const std::vector<int> &tokenIndices, int epochs, int window
 	{
 		for (const auto &window : windows)
 		{
-			std::vector<double> predictions = model->forwardPass(window.contextIndices);
-			model->backwardPass(window.contextIndices, window.centerIndex, predictions, learningRate);
+			model->pass(window, learningRate);
 		}
 
 		// Print progress
@@ -60,10 +59,9 @@ void Trainer::trainWithNegativeSampling(const std::vector<int> &tokenIndices,
 	{
 		for (const auto &window : windows)
 		{
-			model->backwardPassSampling(window.contextIndices,
-										window.centerIndex,
-										negativeSampler,
-										learningRate);
+			model->passSampling(window,
+								negativeSampler,
+								learningRate);
 		}
 
 		if ((epoch + 1) % 10 == 0 || epoch == 0)

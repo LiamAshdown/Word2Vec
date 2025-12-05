@@ -13,7 +13,7 @@ std::vector<ContextWindow> TrainingDataBuilder::createWindows(const std::vector<
         return windows; // Not enough tokens to create windows
     }
 
-    const double threshold = 1e-5;
+    const double threshold = 1e-1;
 
     // For each position in the sequence (except at boundaries)
     for (size_t i = 0; i < tokenIndices.size(); ++i)

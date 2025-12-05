@@ -3,6 +3,7 @@
 #include <string>
 
 #include "../Vocabulary/Vocabulary.h"
+#include "../Training/TrainingDataBuilder.h"
 #include "Training/NegativeSampler.h"
 
 struct TrainingPair
@@ -18,15 +19,14 @@ public:
     virtual ~Word2VecModel() = default;
 
 public:
-    virtual std::vector<double> forwardPass(const std::vector<int> &contextIndices) = 0;
-    virtual void backwardPass(const std::vector<int> &contextIndices, int targetIndex, std::vector<double> &probabilities, double learningRate) = 0;
-
-    virtual void backwardPassSampling(const std::vector<int> &contextIndices, int targetIndex, NegativeSampler &negativeSampler, double learningRate) = 0;
+    virtual void pass(ContextWindow window, double learningRate) = 0;
+    virtual void passSampling(ContextWindow window, NegativeSampler &negativeSampler, double learningRate) = 0;
+    virtual std::string predictWord(const std::vector<std::string> &contextWords, const std::unordered_map<std::string, int> &vocab) = 0;
+    // virtual std::vector<int> generateEmbeddings(const std::vector<std::string>)
 
 public:
     std::vector<double> getWordEmbedding(int wordIndex) const;
     std::vector<double> softmax(const std::vector<double> &scores) const;
-    std::string predictWord(const std::vector<std::string> &contextWords, const std::unordered_map<std::string, int> &vocab);
 
 protected:
     void initializeWeights();

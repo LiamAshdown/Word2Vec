@@ -5,6 +5,53 @@ CBOWModel::CBOWModel(int vocabSize, int embeddingDim)
 {
 }
 
+void CBOWModel::pass(ContextWindow window, double learningRate)
+{
+    std::vector<double> probabilities = forwardPass(window.contextIndices);
+
+    backwardPass(window.contextIndices, window.centerIndex, probabilities, learningRate);
+}
+
+void CBOWModel::passSampling(ContextWindow window, NegativeSampler &negativeSampler, double learningRate)
+{
+    std::vector<double> hiddenGrad(_embeddingDim, 0.0);
+
+    auto updateForSample = [&](int wordIndex, double targetLabel)
+    {
+        double score = 0.0;
+        for (int j = 0; j < _embeddingDim; j++)
+        {
+            score += _hidden[j] * W2[j][wordIndex];
+        }
+
+        double prediction = 1.0 / (1.0 + std::exp(-score)); // Sigmoid
+        double error = prediction - targetLabel;
+
+        for (int j = 0; j < _embeddingDim; j++)
+        {
+            hiddenGrad[j] += error * W2[j][wordIndex];
+            W2[j][wordIndex] -= learningRate * error * _hidden[j];
+        }
+    };
+
+    updateForSample(window.centerIndex, 1.0);
+
+    std::vector<int> negativeSamples = negativeSampler.sample(window.centerIndex);
+    for (int negativeIndex : negativeSamples)
+    {
+        updateForSample(negativeIndex, 0.0);
+    }
+
+    double contextScale = learningRate / window.contextIndices.size();
+    for (int idx : window.contextIndices)
+    {
+        for (int j = 0; j < _embeddingDim; j++)
+        {
+            W1[idx][j] -= contextScale * hiddenGrad[j];
+        }
+    }
+}
+
 std::vector<double> CBOWModel::forwardPass(const std::vector<int> &contextIndices)
 {
     std::fill(_hidden.begin(), _hidden.end(), 0.0);
@@ -98,46 +145,6 @@ void CBOWModel::backwardPass(const std::vector<int> &contextIndices, int targetI
                 // I should have a better guess on what the target word is
                 W1[idx][j] -= contextScale * hiddenGrad[j];
             }
-        }
-    }
-}
-
-void CBOWModel::backwardPassSampling(const std::vector<int> &contextIndices, int targetIndex, NegativeSampler &negativeSampler, double learningRate)
-{
-    std::vector<double> hiddenGrad(_embeddingDim, 0.0);
-
-    auto updateForSample = [&](int wordIndex, double targetLabel)
-    {
-        double score = 0.0;
-        for (int j = 0; j < _embeddingDim; j++)
-        {
-            score += _hidden[j] * W2[j][wordIndex];
-        }
-
-        double prediction = 1.0 / (1.0 + std::exp(-score)); // Sigmoid
-        double error = prediction - targetLabel;
-
-        for (int j = 0; j < _embeddingDim; j++)
-        {
-            hiddenGrad[j] += error * W2[j][wordIndex];
-            W2[j][wordIndex] -= learningRate * error * _hidden[j];
-        }
-    };
-
-    updateForSample(targetIndex, 1.0);
-
-    std::vector<int> negativeSamples = negativeSampler.sample(targetIndex);
-    for (int negativeIndex : negativeSamples)
-    {
-        updateForSample(negativeIndex, 0.0);
-    }
-
-    double contextScale = learningRate / contextIndices.size();
-    for (int idx : contextIndices)
-    {
-        for (int j = 0; j < _embeddingDim; j++)
-        {
-            W1[idx][j] -= contextScale * hiddenGrad[j];
         }
     }
 }
