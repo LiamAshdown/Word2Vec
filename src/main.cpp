@@ -35,15 +35,18 @@ int main()
 
     auto logger = std::make_shared<ConsoleLogger>();
 
-    Trainer trainer(model, vocab, .01, logger.get());
+    Trainer trainer(model, vocab, 0.01, logger.get());
 
     // trainer.train(tokenIndices, 10000, 2);
     trainer.trainWithNegativeSampling(tokenIndices, 100, 4, 5);
 
     int foxIndex = vocab.getIndex("fox");
-    std::vector<std::string> contextWords = {"quick", "brown"};
+    std::vector<std::string> contextWords = tokenizer.tokenize("brown fox");
+
     std::string predictedWord = model->predictWord(contextWords, vocab.getWordToIndexMap());
     logger->info("Predicted word for context [quick, brown]: " + predictedWord);
+
+    std::vector<double> embeddings = model->generateEmbeddings(contextWords, vocab.getWordToIndexMap());
 
     return 0;
 }
