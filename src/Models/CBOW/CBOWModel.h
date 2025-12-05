@@ -12,6 +12,7 @@ public:
     void passSampling(ContextWindow window, NegativeSampler &negativeSampler, double learningRate) override;
 
     std::string predictWord(const std::vector<std::string> &contextWords, const std::unordered_map<std::string, int> &vocab) override;
+    std::vector<double> generateEmbeddings(const std::vector<std::string> &contextWords, const std::unordered_map<std::string, int> &vocab) override;
 
 private:
     void backwardPass(const std::vector<int> &contextIndices, int targetIndex, std::vector<double> &probabilities, double learningRate);

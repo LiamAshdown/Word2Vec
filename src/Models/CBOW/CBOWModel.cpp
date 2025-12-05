@@ -197,3 +197,25 @@ std::string CBOWModel::predictWord(const std::vector<std::string> &contextWords,
 
     return "";
 }
+
+std::vector<double> CBOWModel::generateEmbeddings(const std::vector<std::string> &contextWords, const std::unordered_map<std::string, int> &vocab)
+{
+    std::vector<double> combinedEmbeddings(_embeddingDim, 0);
+    for (const auto &word : contextWords)
+    {
+        int index = vocab.at(word);
+        const auto &embedding = W1[index];
+
+        for (int i = 0; i < _embeddingDim; i++)
+        {
+            combinedEmbeddings[i] += embedding[i];
+        }
+    }
+
+    for (int i = 0; i < _embeddingDim; i++)
+    {
+        combinedEmbeddings[i] /= contextWords.size();
+    }
+
+    return combinedEmbeddings;
+}

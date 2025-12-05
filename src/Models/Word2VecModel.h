@@ -22,7 +22,7 @@ public:
     virtual void pass(ContextWindow window, double learningRate) = 0;
     virtual void passSampling(ContextWindow window, NegativeSampler &negativeSampler, double learningRate) = 0;
     virtual std::string predictWord(const std::vector<std::string> &contextWords, const std::unordered_map<std::string, int> &vocab) = 0;
-    // virtual std::vector<int> generateEmbeddings(const std::vector<std::string>)
+    virtual std::vector<double> generateEmbeddings(const std::vector<std::string> &contextWords, const std::unordered_map<std::string, int> &vocabs) = 0;
 
 public:
     std::vector<double> getWordEmbedding(int wordIndex) const;

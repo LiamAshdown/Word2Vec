@@ -45,6 +45,10 @@ std::vector<std::string> Tokenizer::tokenize(std::string words)
 
         process(current, character, tokens);
     }
+
+    flush(current, tokens);
+
+    return tokens;
 }
 
 void Tokenizer::process(std::string &current, const char character, std::vector<std::string> &tokens)
