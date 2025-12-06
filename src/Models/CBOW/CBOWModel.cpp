@@ -103,10 +103,8 @@ std::vector<double> CBOWModel::forwardPass(const std::vector<int> &contextIndice
 
 void CBOWModel::backwardPass(const std::vector<int> &contextIndices, int targetIndex, std::vector<double> &probabilities, double learningRate)
 {
-    std::vector<double> outputGrad = probabilities;
-
     // Check how wrong we are, if negative we go up, if positive we go down
-    outputGrad[targetIndex] -= 1.0;
+    probabilities[targetIndex] -= 1.0;
 
     {
         std::vector<double> hiddenGrad(_embeddingDim, 0.0);
@@ -116,7 +114,7 @@ void CBOWModel::backwardPass(const std::vector<int> &contextIndices, int targetI
             {
                 // hidden[dim] = sum over k (outputGrad[wordindex] * W2[dim][wordindex])
                 // hiddenGrad represents the total error signal each dimension
-                hiddenGrad[j] += outputGrad[k] * W2[j][k];
+                hiddenGrad[j] += probabilities[k] * W2[j][k];
             }
         }
 
@@ -130,7 +128,7 @@ void CBOWModel::backwardPass(const std::vector<int> &contextIndices, int targetI
                 // Adjust the W2 to be closer or further from the hidden layer (the context) based on the output error
                 // If we predicted too high for this word, decrease its weights (move away)
                 // If we predicted too low for this word, increase its weights (move closer)
-                W2[j][k] -= learningRate * outputGrad[k] * _hidden[j];
+                W2[j][k] -= learningRate * probabilities[k] * _hidden[j];
             }
         }
 
